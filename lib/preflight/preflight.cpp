@@ -18,7 +18,69 @@
 //  DATA  --  the definitions the header promised
 // =====================================================================
 
+// ------------------------------------------------------------ libraries
+#include <Arduino.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_ST7789.h>
+#include <PCA95x5.h>
+#include <Adafruit_NeoPixel.h>
+#include <Anitracks_ADS7142.h>
+#include <Arduino_LSM6DSOX.h>
+#include <QMC5883LCompass.h>
+#include <VL6180X.h>
+#include <Servo.h>
+#include <WiFiNINA.h>
+
 #include "preflight.h"
+
+// ---------------------------------------------------------------------
+//  1.  VEHICLE UNDER TEST
+// ---------------------------------------------------------------------
+#define VEHICLE_ID       "EH-007"     // put your board number here
+
+// ---------------------------------------------------------------------
+//  2.  ACCEPTANCE LIMITS
+//
+//  These are the numbers that decide PASS and FAIL. They are policy,
+//  not code: the Software Group wrote the tests, but the limits belong
+//  to the manager who signs the certificate. Loosen one and marginal
+//  hardware flies. Tighten one and good hardware gets scrapped. Every
+//  number here is a decision you must be able to defend.
+// ---------------------------------------------------------------------
+#define POT_SPAN_PCT      80     // % of full scale the throttle must sweep
+#define TEMP_MIN_C        15.0   // coldest plausible cabin reading, C
+#define TEMP_MAX_C        35.0   // hottest plausible cabin reading, C
+#define TEMP_RISE_C       1.0    // rise required when the sensor is pinched
+#define LIGHT_DROP_PCT    70     // covered reading must fall below this % of
+                                 // the open reading. Tuned for a normally lit
+                                 // room, not direct sunlight: tighten it if
+                                 // your bench is bright.
+#define LIGHT_MIN_OPEN    3000   // below this the room is too dark to judge
+#define IMU_TILT_DEG      15.0   // tilt that must register on each side
+#define COMPASS_TURN_DEG  90     // azimuth change required on a half turn
+#define RANGE_TARGET_MM   100    // where the operator holds their hand
+#define RANGE_TOL_MM      20     // how far off that reading may be
+#define WIFI_RSSI_MIN    -80     // weakest network the radio must hear, dBm
+
+// ---- operator interaction timing ----------------------------------
+//  Raise these if the checkout feels rushed at the bench.
+#define START_TIMEOUT     20000  // ms to press RIGHT and begin a test
+#define ANSWER_TIMEOUT     8000  // ms to answer YES before it counts as NO
+#define BUTTON_TIMEOUT    10000  // ms to find and press one named button
+#define WATCH_TIME         4000  // ms each thing you must look at stays on
+#define SWEEP_TIME        10000  // ms to sweep the pot / pinch the sensor
+#define AIM_TIME           6000  // ms of live readout to aim the rangefinder
+
+// -------------------------------------------------------------- hardware
+Adafruit_ST7789   tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
+Adafruit_NeoPixel strip(NEO_COUNT, NEO_PIN, NEO_GRB + NEO_KHZ800);
+PCA9535           muxU31;        // buttons and enable lines   (0x20)
+PCA9535           ledmux;        // 7-segment display          (0x21)
+ADS7142           adcTempPot(ADDR_TEMPPOT);
+ADS7142           adcLight(ADDR_LIGHT);
+QMC5883LCompass   compass;
+VL6180X           rangefinder;
+Servo             mast;
 
 // Segment patterns and digit positions, exactly as built in Lab 2.
 uint16_t SEG[] = {

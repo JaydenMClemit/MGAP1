@@ -23,20 +23,7 @@
 //  in preflight.ino is readable by a manager who has never seen C++.
 // =====================================================================
 
-// ------------------------------------------------------------ libraries
 #include <Arduino.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_ST7789.h>
-#include <PCA95x5.h>
-#include <Adafruit_NeoPixel.h>
-#include <Anitracks_ADS7142.h>
-#include <Arduino_LSM6DSOX.h>
-#include <QMC5883LCompass.h>
-#include <VL6180X.h>
-#include <Servo.h>
-#include <WiFiNINA.h>
-
-#include "main.cpp"
 
 // ----------------------------------------------------------------- pins
 #define TFT_CS         4
@@ -78,16 +65,6 @@
 #define MASK_FRONT     0x0002    // active-HIGH
 #define MASK_BACK      0x0004    // active-HIGH
 
-// -------------------------------------------------------------- hardware
-Adafruit_ST7789   tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_RST);
-Adafruit_NeoPixel strip(NEO_COUNT, NEO_PIN, NEO_GRB + NEO_KHZ800);
-PCA9535           muxU31;        // buttons and enable lines   (0x20)
-PCA9535           ledmux;        // 7-segment display          (0x21)
-ADS7142           adcTempPot(ADDR_TEMPPOT);
-ADS7142           adcLight(ADDR_LIGHT);
-QMC5883LCompass   compass;
-VL6180X           rangefinder;
-Servo             mast;
 
 // 7-segment lookup tables, exactly as built in Lab 2
 extern uint16_t SEG[];           // segment patterns, digits 0-9
